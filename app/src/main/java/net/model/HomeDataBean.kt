@@ -1,6 +1,6 @@
 package model
 
-class BannerDataBean : ArrayList<DataBeanItem>()
+class HotDataBean : ArrayList<DataBeanItem>()
 
 data class DataBeanItem(
     val height: String,
