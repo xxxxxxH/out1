@@ -1,8 +1,10 @@
 package model
 
-class HotDataBean : ArrayList<DataBeanItem>()
+import java.io.Serializable
 
-data class DataBeanItem(
+class HotDataBean : ArrayList<DataBeanItem>(),Serializable
+
+data class DataBeanItem (
     val height: String,
     val img_category: String,
     val img_like: String,
@@ -13,4 +15,4 @@ data class DataBeanItem(
     val thumb_height: String,
     val thumb_width: String,
     val width: String
-)
+):Serializable

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,18 +20,23 @@ import net.interFace.OnItemClickListener;
 import net.utils.ScreenUtils;
 
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
 
 import model.HotDataBean;
 
-public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder> {
+public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
 
-    HotDataBean data;
+    ArrayList<String> data;
+    ArrayList<String> nameData;
     Context context;
     Activity activity;
     private OnItemClickListener onItemClickListener;
 
-    public ImgAdapter(HotDataBean data, Context context, Activity activity) {
+    public TypeAdapter(ArrayList<String> data,ArrayList<String> nameData, Context context, Activity activity) {
         this.data = data;
+        this.nameData = nameData;
         this.context = context;
         this.activity = activity;
     }
@@ -43,20 +49,19 @@ public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder> {
     @NotNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_item_img, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_item_type, parent, false);
         ViewHolder holder = new ViewHolder(view);
         return holder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull @NotNull ViewHolder holder, int position) {
-        ViewGroup.LayoutParams params = holder.imageView.getLayoutParams();
-        params.height = ScreenUtils.getScreenSize(activity)[0] / 4;
-        params.width = ScreenUtils.getScreenSize(activity)[1];
-        holder.imageView.setLayoutParams(params);
-        Glide.with(context).load(data.get(position).getImg_thumb_url()).into(holder.imageView);
-        holder.name.setText(data.get(position).getImg_title());
-        holder.like.setText("有" + data.get(position).getImg_like() + "人也喜欢");
+        ViewGroup.LayoutParams params = holder.root.getLayoutParams();
+        params.width = ScreenUtils.getScreenSize(activity)[1] / 3;
+        params.height = ScreenUtils.getScreenSize(activity)[1] / 3;
+        holder.root.setLayoutParams(params);
+        holder.name.setText(nameData.get(position));
+        Glide.with(context).load(data.get(position)).into(holder.imageView);
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -71,11 +76,10 @@ public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        Log.v("----------", "数据=" + data.size());
         return data.size();
     }
 
-    public HotDataBean getData(){
+    public ArrayList<String> getData(){
         return data;
     }
 
@@ -83,13 +87,13 @@ public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder> {
 
         ImageView imageView;
         TextView name;
-        TextView like;
+        RelativeLayout root;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.img);
-            name = itemView.findViewById(R.id.img_name);
-            like = itemView.findViewById(R.id.img_like);
+            imageView = itemView.findViewById(R.id.type_img);
+            name = itemView.findViewById(R.id.type_name);
+            root = itemView.findViewById(R.id.type_root);
         }
     }
 }
