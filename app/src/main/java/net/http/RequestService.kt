@@ -1,19 +1,14 @@
 package net.http
 
-import model.BannerDataBean
+import model.HotDataBean
 import retrofit2.Call
 import retrofit2.http.GET
-import retrofit2.http.Query
 
 interface RequestService {
 
-    @GET("api")
-    fun getDatas(
-        @Query("version") version: String,
-        @Query("appid") appid: String,
-        @Query("appsecret") appsecret: String
-    ): Call<BannerDataBean>
+    val hot_url: String?
+        get() = "appcar/getCategoryThumb.php?page=0&ca_pic_limit=100&ca_limit=100"
 
-    @GET("appeagle/getGallery.php")
-    fun getBannerData():Call<BannerDataBean>
+    @GET("appcar/getCategoryThumb.php?page=0&ca_pic_limit=100&ca_limit=100")
+    fun getHomeData():Call<HotDataBean>
 }
