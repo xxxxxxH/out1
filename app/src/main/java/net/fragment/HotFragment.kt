@@ -51,6 +51,7 @@ class HotFragment : Fragment(), OnItemClickListener {
                 recyclerviewHot.layoutManager =
                     LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
                 recyclerviewHot.adapter = adapter
+                progressBar.visibility = View.GONE
             }
 
             override fun onFailure(call: Call<HotDataBean>, t: Throwable) {

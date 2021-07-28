@@ -1,5 +1,7 @@
 package net.basicmodel
 
+import android.annotation.SuppressLint
+import android.app.WallpaperManager
 import android.os.Bundle
 import android.util.Range
 import android.view.View
@@ -7,6 +9,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.layout_activity_gallery.*
 import model.DataBeanItem
 import model.HotDataBean
@@ -24,6 +27,7 @@ class GalleryActivity : AppCompatActivity() {
 
     var views: ArrayList<View>? = ArrayList()
 
+    @SuppressLint("ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout_activity_gallery)
@@ -58,6 +62,19 @@ class GalleryActivity : AppCompatActivity() {
             }
 
         })
+
+        gallery_set_wallpaper.setOnClickListener {
+            val paperManager = WallpaperManager.getInstance(this@GalleryActivity)
+
+        }
+        gallery_save.setOnClickListener {
+            val bitmap = Glide.with(this)
+                .asBitmap()
+                .load((hotDataBean[viewpager.currentItem] as DataBeanItem).img_url)
+                .into(100,100)
+                .get()
+        }
+
     }
     inner class MyPagerAdapter : PagerAdapter() {
         override fun getCount(): Int {

@@ -2,12 +2,12 @@ package net.adapter;
 
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
+import android.graphics.Color;
+import android.graphics.drawable.ClipDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,16 +20,18 @@ import net.utils.ScreenUtils;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+
 import model.HotDataBean;
 
-public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder> {
+public class DetailsAdapter extends RecyclerView.Adapter<DetailsAdapter.ViewHolder> {
 
     HotDataBean data;
     Context context;
     Activity activity;
-    private OnItemClickListener onItemClickListener;
+    OnItemClickListener onItemClickListener;
 
-    public ImgAdapter(HotDataBean data, Context context, Activity activity) {
+    public DetailsAdapter(HotDataBean data, Context context,Activity activity) {
         this.data = data;
         this.context = context;
         this.activity = activity;
@@ -39,24 +41,28 @@ public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder> {
         this.onItemClickListener = onItemClickListener;
     }
 
+    public HotDataBean getData() {
+        return data;
+    }
+
     @NonNull
     @NotNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_item_img, parent, false);
-        ViewHolder holder = new ViewHolder(view);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_item_details, parent, false);
+        DetailsAdapter.ViewHolder holder = new DetailsAdapter.ViewHolder(view);
         return holder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull @NotNull ViewHolder holder, int position) {
         ViewGroup.LayoutParams params = holder.imageView.getLayoutParams();
-        params.height = ScreenUtils.getScreenSize(activity)[0] / 4;
-        params.width = ScreenUtils.getScreenSize(activity)[1];
+        params.height = ScreenUtils.getScreenSize(activity)[0] / 3;
         holder.imageView.setLayoutParams(params);
-        Glide.with(context).load(data.get(position).getImg_thumb_url()).into(holder.imageView);
-        holder.name.setText(data.get(position).getImg_title());
-        holder.like.setText(data.get(position).getImg_like() + "likes");
+        Glide.with(context)
+                .load(data.get(position).getImg_thumb_url())
+                .placeholder(R.mipmap.ic_launcher)
+                .into(holder.imageView);
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -71,25 +77,15 @@ public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        Log.v("----------", "数据=" + data.size());
         return data.size();
     }
 
-    public HotDataBean getData(){
-        return data;
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
         ImageView imageView;
-        TextView name;
-        TextView like;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.img);
-            name = itemView.findViewById(R.id.img_name);
-            like = itemView.findViewById(R.id.img_like);
+            imageView = itemView.findViewById(R.id.details_img);
         }
     }
 }

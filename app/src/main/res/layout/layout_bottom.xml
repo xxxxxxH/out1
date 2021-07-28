@@ -12,17 +12,17 @@
 
         <TextView
             android:id="@+id/HotTv"
-            android:text="Hot WallPapers"
+            android:text="HOT"
             style="@style/bottom_tv" />
 
         <TextView
             android:id="@+id/CatTv"
-            android:text="Categorites"
+            android:text="TYPES"
             style="@style/bottom_tv" />
 
         <TextView
             android:id="@+id/SetTv"
-            android:text="Settings"
+            android:text="SETTING"
             style="@style/bottom_tv" />
 
     </LinearLayout>

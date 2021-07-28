@@ -2,6 +2,7 @@ package net.fragment
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import kotlinx.android.synthetic.main.layout_fragment_cat.*
 import net.adapter.TypeAdapter
 import net.basicmodel.R
+import net.basicmodel.TypeDetailsActivity
 import net.interFace.OnItemClickListener
 
 class CategoritesFragment : Fragment() , OnItemClickListener{
@@ -140,6 +142,9 @@ class CategoritesFragment : Fragment() , OnItemClickListener{
     }
 
     override fun onItemClick(view: View?, position: Int, flag: String?) {
-        Toast.makeText(activity, "position = $position", Toast.LENGTH_SHORT).show()
+        val type = types[position]
+        val intent = Intent(activity,TypeDetailsActivity::class.java)
+        intent.putExtra("type",type)
+        activity?.startActivity(intent)
     }
 }
