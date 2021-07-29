@@ -2,19 +2,27 @@ package net.basicmodel
 
 import android.annotation.SuppressLint
 import android.app.WallpaperManager
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
-import android.util.Range
+import android.os.Environment
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
 import kotlinx.android.synthetic.main.layout_activity_gallery.*
 import model.DataBeanItem
-import model.HotDataBean
 import net.widget.GalleryItemView
-import java.util.ArrayList
+import java.io.File
+import java.io.FileOutputStream
+import java.util.*
 
 /**
  * Copyright (C) 2021,2021/7/28, a Tencent company. All rights reserved.
@@ -43,8 +51,8 @@ class GalleryActivity : AppCompatActivity() {
         }
         viewpager.adapter = MyPagerAdapter()
         viewpager.currentItem = position
-        gallery_tv.text = (position+1).toString() + " / " + hotDataBean.size.toString()
-        viewpager.setOnPageChangeListener(object  : ViewPager.OnPageChangeListener{
+        gallery_tv.text = (position + 1).toString() + " / " + hotDataBean.size.toString()
+        viewpager.setOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int,
                 positionOffset: Float,
@@ -54,7 +62,7 @@ class GalleryActivity : AppCompatActivity() {
             }
 
             override fun onPageSelected(position: Int) {
-                gallery_tv.text = (position+1).toString() + " / " + hotDataBean.size.toString()
+                gallery_tv.text = (position + 1).toString() + " / " + hotDataBean.size.toString()
             }
 
             override fun onPageScrollStateChanged(state: Int) {
@@ -68,21 +76,70 @@ class GalleryActivity : AppCompatActivity() {
 
         }
         gallery_save.setOnClickListener {
-            val bitmap = Glide.with(this)
-                .asBitmap()
-                .load((hotDataBean[viewpager.currentItem] as DataBeanItem).img_url)
-                .into(100,100)
-                .get()
+            downImg(this,(hotDataBean[viewpager.currentItem] as DataBeanItem).img_url,false)
         }
 
     }
+
+    fun downImg(context: Context,url :String,setWallPaper: Boolean){
+        Glide.with(context)
+            .asBitmap()
+            .load(url)
+            .into(object : SimpleTarget<Bitmap>() {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    if (setWallPaper){
+                        //TO DO
+                    }else{
+                        saveImage(resource)
+                    }
+                }
+            })
+
+    }
+
+
+    fun saveImage(image: Bitmap) {
+        var saveImagePath: String? = null
+        val imageFileName: String = System.currentTimeMillis().toString() + ".jpg"
+        val storageDir = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                .toString() + "test"
+        )
+
+        var success = true
+        if (!storageDir.exists()) {
+            success = storageDir.mkdirs()
+        }
+        if (success) {
+            val imageFile = File(storageDir, imageFileName)
+            saveImagePath = imageFile.absolutePath
+            try {
+                val fout = FileOutputStream(imageFile)
+                image.compress(Bitmap.CompressFormat.JPEG, 100, fout)
+                fout.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            galleryAddPic(saveImagePath)
+            Toast.makeText(this, "IMAGE SAVED", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun galleryAddPic(imagePath: String) {
+        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+        val f = File(imagePath)
+        val contentUri = Uri.fromFile(f)
+        mediaScanIntent.data = contentUri
+        sendBroadcast(mediaScanIntent)
+    }
+
     inner class MyPagerAdapter : PagerAdapter() {
         override fun getCount(): Int {
             return views!!.size
         }
 
         override fun isViewFromObject(view: View, `object`: Any): Boolean {
-            return view==`object`
+            return view == `object`
         }
 
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
