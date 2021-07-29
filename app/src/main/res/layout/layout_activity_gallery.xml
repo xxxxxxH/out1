@@ -34,13 +34,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="保存到相册" />
+            android:textAllCaps="true"
+            android:text="download" />
 
         <Button
             android:id="@+id/gallery_set_wallpaper"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="设为壁纸" />
+            android:textAllCaps="true"
+            android:text="set Wallpaper" />
     </LinearLayout>
 </RelativeLayout>

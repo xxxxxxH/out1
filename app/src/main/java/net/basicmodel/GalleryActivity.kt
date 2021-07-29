@@ -1,10 +1,11 @@
 package net.basicmodel
 
+import android.R.attr
 import android.annotation.SuppressLint
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -15,14 +16,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
+import com.facebook.appevents.ml.Utils
 import kotlinx.android.synthetic.main.layout_activity_gallery.*
 import model.DataBeanItem
+import net.utils.utils
 import net.widget.GalleryItemView
+import net.widget.LoadingDialog
 import java.io.File
-import java.io.FileOutputStream
 import java.util.*
+
 
 /**
  * Copyright (C) 2021,2021/7/28, a Tencent company. All rights reserved.
@@ -34,6 +42,7 @@ import java.util.*
 class GalleryActivity : AppCompatActivity() {
 
     var views: ArrayList<View>? = ArrayList()
+    var loadingDialog : LoadingDialog? = null
 
     @SuppressLint("ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,65 +81,93 @@ class GalleryActivity : AppCompatActivity() {
         })
 
         gallery_set_wallpaper.setOnClickListener {
-            val paperManager = WallpaperManager.getInstance(this@GalleryActivity)
-
+            if (loadingDialog == null){
+                loadingDialog = LoadingDialog(this@GalleryActivity)
+            }
+            loadingDialog!!.show()
+            Thread(Runnable {
+                Thread.sleep(1500)
+                downImg(this, (hotDataBean[viewpager.currentItem] as DataBeanItem).img_url, true)
+            }).start()
         }
         gallery_save.setOnClickListener {
-            downImg(this,(hotDataBean[viewpager.currentItem] as DataBeanItem).img_url,false)
-        }
-
-    }
-
-    fun downImg(context: Context,url :String,setWallPaper: Boolean){
-        Glide.with(context)
-            .asBitmap()
-            .load(url)
-            .into(object : SimpleTarget<Bitmap>() {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    if (setWallPaper){
-                        //TO DO
-                    }else{
-                        saveImage(resource)
-                    }
-                }
-            })
-
-    }
-
-
-    fun saveImage(image: Bitmap) {
-        var saveImagePath: String? = null
-        val imageFileName: String = System.currentTimeMillis().toString() + ".jpg"
-        val storageDir = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                .toString() + "test"
-        )
-
-        var success = true
-        if (!storageDir.exists()) {
-            success = storageDir.mkdirs()
-        }
-        if (success) {
-            val imageFile = File(storageDir, imageFileName)
-            saveImagePath = imageFile.absolutePath
-            try {
-                val fout = FileOutputStream(imageFile)
-                image.compress(Bitmap.CompressFormat.JPEG, 100, fout)
-                fout.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            if (loadingDialog == null){
+                loadingDialog = LoadingDialog(this@GalleryActivity)
             }
-            galleryAddPic(saveImagePath)
-            Toast.makeText(this, "IMAGE SAVED", Toast.LENGTH_LONG).show()
+            loadingDialog!!.show()
+            Thread(Runnable {
+                Thread.sleep(1500)
+                downImg(this, (hotDataBean[viewpager.currentItem] as DataBeanItem).img_url, false)
+            }).start()
+
         }
+
     }
 
-    fun galleryAddPic(imagePath: String) {
-        val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-        val f = File(imagePath)
-        val contentUri = Uri.fromFile(f)
-        mediaScanIntent.data = contentUri
-        sendBroadcast(mediaScanIntent)
+    fun downImg(context: Context, url: String, setWallPaper: Boolean) {
+        Glide.with(context)
+            .downloadOnly()
+            .load(url)
+            .listener(object : RequestListener<File> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<File>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    if (loadingDialog != null && loadingDialog!!.isShowing){
+                        loadingDialog!!.dismiss()
+                    }
+                    Toast.makeText(context, "download failed", Toast.LENGTH_SHORT).show()
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: File?,
+                    model: Any?,
+                    target: Target<File>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    if (resource != null) {
+                        saveToAlbum(context, resource,setWallPaper)
+                    }
+                    return false
+                }
+
+            }).preload();
+    }
+
+    /**
+     * 保存到相册中
+     * @param context 上下文
+     * @param srcPath 网络图保存到本地的缓存文件路径
+     */
+    fun saveToAlbum(context: Context, srcPath: File,setWallPaper: Boolean) {
+        val dcimPath = Environment.getExternalStorageDirectory()
+        val file = File(dcimPath, System.currentTimeMillis().toString() + ".png");
+        val isCopySuccess = utils.copyFile(srcPath, file.getAbsolutePath());
+        if (isCopySuccess) {
+            //发送广播通知
+            context.sendBroadcast(
+                Intent(
+                    Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                    Uri.parse("file://" + file.getAbsolutePath())
+                )
+            );
+            if (setWallPaper){
+                val paperManager = WallpaperManager.getInstance(this@GalleryActivity)
+                val bitmap = BitmapFactory.decodeFile(file.toString())
+                paperManager.setBitmap(bitmap)
+                bitmap.recycle()
+            }
+            Toast.makeText(context, "success", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "failed", Toast.LENGTH_SHORT).show()
+        }
+        if (loadingDialog != null && loadingDialog!!.isShowing){
+            loadingDialog!!.dismiss()
+        }
     }
 
     inner class MyPagerAdapter : PagerAdapter() {
